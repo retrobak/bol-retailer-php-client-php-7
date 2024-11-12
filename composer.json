@@ -1,12 +1,12 @@
 {
-    "name": "picqer/bol-retailer-php-client",
+    "name": "retrobak/bol-retailer-php-client-php-7",
     "type": "library",
-    "description": "Bol.com Retailer API client",
+    "description": "Fork of the Bol.com Retailer API client by Picqer for PHP7",
     "keywords": [
         "picqer",
         "bol-retailer-php-client"
     ],
-    "homepage": "https://github.com/picqer/bol-retailer-php-client",
+    "homepage": "https://github.com/retrobak/bol-retailer-php-client-php-7",
     "license": "MIT",
     "authors": [
         {
