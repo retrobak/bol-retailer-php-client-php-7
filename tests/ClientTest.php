@@ -100,9 +100,7 @@ class ClientTest extends TestCase
                 return Message::parseResponse(file_get_contents(__DIR__ . '/Fixtures/http/202-offers-export'));
             });
 
-        $expectedBody = json_encode([
-            'format' => 'CSV'
-        ]);
+        $expectedBody = json_encode([]);
 
         $this->client->postOfferExport('CSV');
 

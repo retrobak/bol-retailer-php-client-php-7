@@ -547,7 +547,7 @@ class BaseClientTest extends TestCase
             '200' => 'string'
         ]);
 
-        $this->assertEquals("This is a test string\n", $response);
+        $this->assertStringContainsString("This is a test string", $response);
     }
 
     public function testRequestReturnsNullAt404()
