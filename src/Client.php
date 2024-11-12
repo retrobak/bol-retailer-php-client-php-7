@@ -39,7 +39,7 @@ class Client extends BaseClient
      * @param string $ean The EAN number associated with this product.
      * @param float $unitPrice The price of the product with a period as a decimal separator. The price should always
      * have two decimals precision.
-     * @param Enum\GetCommissionCondition|null $condition The condition of the offer.
+     * @param string|null $condition The condition of the offer.
      * @return Model\Commission|null
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -47,13 +47,13 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getCommission(string $ean, float $unitPrice, ?Enum\GetCommissionCondition $condition = null): ?Model\Commission
+    public function getCommission(string $ean, float $unitPrice, ?string $condition = null): ?Model\Commission
     {
-        $url = "retailer/commission/{$ean}";
+        $url = "retailer/commission/${ean}";
         $options = [
             'query' => [
                 'unit-price' => $unitPrice,
-                'condition' => $condition?->value,
+                'condition' => $condition,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -103,10 +103,9 @@ class Client extends BaseClient
      */
     public function getCatalogProduct(string $ean, ?string $AcceptLanguage = null): ?Model\CatalogProduct
     {
-        $url = "retailer/content/catalog-products/{$ean}";
+        $url = "retailer/content/catalog-products/${ean}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\CatalogProduct::class,
@@ -178,7 +177,7 @@ class Client extends BaseClient
      */
     public function getUploadReport(string $uploadId): ?Model\UploadReportResponse
     {
-        $url = "retailer/content/upload-report/{$uploadId}";
+        $url = "retailer/content/upload-report/${uploadId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -193,10 +192,10 @@ class Client extends BaseClient
     /**
      * Get the product visits and the buy box percentage for an offer during a given period.
      * @param string $offerId Unique identifier for an offer.
-     * @param Enum\GetOfferInsightsPeriod $period The time unit in which the offer insights are grouped.
+     * @param string $period The time unit in which the offer insights are grouped.
      * @param int $numberOfPeriods The number of periods for which the offer insights are requested back in time. The
      * maximum available periods are 24 for MONTH, 104 for WEEK, and 730 for DAY.
-     * @param Enum\GetOfferInsightsName $name The name of the requested offer insight.
+     * @param string $name The name of the requested offer insight.
      * @return Model\OfferInsight[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -204,15 +203,15 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getOfferInsights(string $offerId, Enum\GetOfferInsightsPeriod $period, int $numberOfPeriods, Enum\GetOfferInsightsName $name): array
+    public function getOfferInsights(string $offerId, string $period, int $numberOfPeriods, string $name): array
     {
         $url = "retailer/insights/offer";
         $options = [
             'query' => [
                 'offer-id' => $offerId,
-                'period' => $period->value,
+                'period' => $period,
                 'number-of-periods' => $numberOfPeriods,
-                'name' => $name->value,
+                'name' => $name,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -225,7 +224,7 @@ class Client extends BaseClient
 
     /**
      * Gets the measurements for your performance indicators per week.
-     * @param Enum\GetPerformanceIndicatorsName $name The type of the performance indicator
+     * @param string $name The type of the performance indicator
      * @param string $year Year number in the ISO-8601 standard.
      * @param string $week Week number in the ISO-8601 standard. If you would like to get the relative scores from the
      * current week, please provide the current week number here. Be advised that measurements can change heavily over
@@ -237,12 +236,12 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getPerformanceIndicators(Enum\GetPerformanceIndicatorsName $name, string $year, string $week): array
+    public function getPerformanceIndicators(string $name, string $year, string $week): array
     {
         $url = "retailer/insights/performance/indicator";
         $options = [
             'query' => [
-                'name' => $name->value,
+                'name' => $name,
                 'year' => $year,
                 'week' => $week,
             ],
@@ -260,8 +259,8 @@ class Client extends BaseClient
      * @param string $ean The EAN number associated with this product.
      * @param string $date Filters search results to a specific date. The date must be in the past, no more than three
      * months back, and up to yesterday.
-     * @param Enum\GetProductRanksType|null $type Determines the search type, either 'SEARCH' for specific queries or
-     * 'BROWSE' for broader category searches. In order to retrieve all results, it can be sent as "null".
+     * @param string|null $type Determines the search type, either 'SEARCH' for specific queries or 'BROWSE' for broader
+     * category searches. In order to retrieve all results, it can be sent as "null".
      * @param int|null $page The requested page number with a page size of 50 items.
      * @param string|null $AcceptLanguage The language to search for.
      * @return Model\ProductRanks
@@ -271,18 +270,17 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getProductRanks(string $ean, string $date, ?Enum\GetProductRanksType $type = null, ?int $page = 1, ?string $AcceptLanguage = null): Model\ProductRanks
+    public function getProductRanks(string $ean, string $date, ?string $type = null, ?int $page = 1, ?string $AcceptLanguage = null): Model\ProductRanks
     {
         $url = "retailer/insights/product-ranks";
         $options = [
             'query' => [
                 'ean' => $ean,
                 'date' => $date,
-                'type' => $type?->value,
+                'type' => $type,
                 'page' => $page,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\ProductRanks::class,
@@ -325,7 +323,7 @@ class Client extends BaseClient
      * bol.com customers are searching for. Based on the search volume per search term you can optimize your product
      * content, or spot opportunities to extend your assortment, or analyzing trends for inventory management.
      * @param string $searchTerm The search term for which you want to request the search volume.
-     * @param Enum\GetSearchTermsPeriod $period The time unit in which the offer insights are grouped.
+     * @param string $period The time unit in which the offer insights are grouped.
      * @param int $numberOfPeriods The number of periods for which the offer insights are requested back in time.
      * @param bool|null $relatedSearchTerms Indicates whether or not you want to retrieve the related search terms.
      * @return Model\SearchTerms
@@ -335,13 +333,13 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getSearchTerms(string $searchTerm, Enum\GetSearchTermsPeriod $period, int $numberOfPeriods, ?bool $relatedSearchTerms = false): Model\SearchTerms
+    public function getSearchTerms(string $searchTerm, string $period, int $numberOfPeriods, ?bool $relatedSearchTerms = false): Model\SearchTerms
     {
         $url = "retailer/insights/search-terms";
         $options = [
             'query' => [
                 'search-term' => $searchTerm,
-                'period' => $period->value,
+                'period' => $period,
                 'number-of-periods' => $numberOfPeriods,
                 'related-search-terms' => $relatedSearchTerms,
             ],
@@ -360,8 +358,8 @@ class Client extends BaseClient
      * @param int|null $page The requested page number with a page size of 50 items.
      * @param array $quantity Filter inventory by providing a range of quantity (min-range)-(max-range). Note that if no
      * state query is submitted in the same request, then the quantity will be filtered on regularStock by default.
-     * @param Enum\GetInventoryStock|null $stock Filter inventory by stock level.
-     * @param Enum\GetInventoryState|null $state Filter inventory by stock type.
+     * @param string|null $stock Filter inventory by stock level.
+     * @param string|null $state Filter inventory by stock type.
      * @param string|null $query Filter inventory by EAN or product title.
      * @return Model\Inventory[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
@@ -370,15 +368,15 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getInventory(?int $page = 1, array $quantity = [], ?Enum\GetInventoryStock $stock = null, ?Enum\GetInventoryState $state = null, ?string $query = null): array
+    public function getInventory(?int $page = 1, array $quantity = [], ?string $stock = null, ?string $state = null, ?string $query = null): array
     {
         $url = "retailer/inventory";
         $options = [
             'query' => [
                 'page' => $page,
                 'quantity' => $quantity,
-                'stock' => $stock?->value,
-                'state' => $state?->value,
+                'stock' => $stock,
+                'state' => $state,
                 'query' => $query,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
@@ -437,7 +435,7 @@ class Client extends BaseClient
      */
     public function getInvoice(string $invoiceId): string
     {
-        $url = "retailer/invoices/{$invoiceId}";
+        $url = "retailer/invoices/${invoiceId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -463,7 +461,7 @@ class Client extends BaseClient
      */
     public function getInvoiceSpecification(string $invoiceId, ?int $page = null): ?string
     {
-        $url = "retailer/invoices/{$invoiceId}/specification";
+        $url = "retailer/invoices/${invoiceId}/specification";
         $options = [
             'query' => [
                 'page' => $page,
@@ -541,7 +539,7 @@ class Client extends BaseClient
      */
     public function getOfferExport(string $reportId): ?string
     {
-        $url = "retailer/offers/export/{$reportId}";
+        $url = "retailer/offers/export/${reportId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+csv',
         ];
@@ -590,7 +588,7 @@ class Client extends BaseClient
      */
     public function getUnpublishedOfferReport(string $reportId): ?string
     {
-        $url = "retailer/offers/unpublished/{$reportId}";
+        $url = "retailer/offers/unpublished/${reportId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+csv',
         ];
@@ -614,7 +612,7 @@ class Client extends BaseClient
      */
     public function getOffer(string $offerId): ?Model\RetailerOffer
     {
-        $url = "retailer/offers/{$offerId}";
+        $url = "retailer/offers/${offerId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -639,7 +637,7 @@ class Client extends BaseClient
      */
     public function putOffer(string $offerId, Model\UpdateOfferRequest $updateOfferRequest): Model\ProcessStatus
     {
-        $url = "retailer/offers/{$offerId}";
+        $url = "retailer/offers/${offerId}";
         $options = [
             'body' => $updateOfferRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -664,7 +662,7 @@ class Client extends BaseClient
      */
     public function deleteOffer(string $offerId): Model\ProcessStatus
     {
-        $url = "retailer/offers/{$offerId}";
+        $url = "retailer/offers/${offerId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -688,7 +686,7 @@ class Client extends BaseClient
      */
     public function updateOfferPrice(string $offerId, Model\Pricing $pricing): Model\ProcessStatus
     {
-        $url = "retailer/offers/{$offerId}/price";
+        $url = "retailer/offers/${offerId}/price";
         $options = [
             'body' => Model\UpdateOfferPriceRequest::constructFromArray(['pricing' => $pricing]),
             'produces' => 'application/vnd.retailer.v10+json',
@@ -714,7 +712,7 @@ class Client extends BaseClient
      */
     public function updateOfferStock(string $offerId, Model\UpdateOfferStockRequest $updateOfferStockRequest): Model\ProcessStatus
     {
-        $url = "retailer/offers/{$offerId}/stock";
+        $url = "retailer/offers/${offerId}/stock";
         $options = [
             'body' => $updateOfferStockRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -730,12 +728,12 @@ class Client extends BaseClient
     /**
      * Gets a paginated list of all orders for a retailer.
      * @param int|null $page The requested page number with a page size of 50 items.
-     * @param Enum\GetOrdersFulfilmentMethod|null $fulfilmentMethod Fulfilled by the retailer (FBR) or fulfilled by
-     * bol.com (FBB). In order to retrieve both FBR and FBB orders, ALL can be used as a parameter.
-     * @param Enum\GetOrdersStatus|null $status You can filter orders based on their status with the following options:
-     * all orders, which include every order regardless of its current status; open orders, which show only the active
-     * orders excluding those that have been shipped or cancelled; and shipped orders, which display only the orders
-     * that have been shipped.
+     * @param string|null $fulfilmentMethod Fulfilled by the retailer (FBR) or fulfilled by bol.com (FBB). In order to
+     * retrieve both FBR and FBB orders, ALL can be used as a parameter.
+     * @param string|null $status You can filter orders based on their status with the following options: all orders,
+     * which include every order regardless of its current status; open orders, which show only the active orders
+     * excluding those that have been shipped or cancelled; and shipped orders, which display only the orders that have
+     * been shipped.
      * @param int|null $changeIntervalMinute To filter on the period in minutes during which the latest change was
      * performed on an order item.
      * @param string|null $latestChangeDate To filter on the date on which the latest change was performed on an order
@@ -747,14 +745,14 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getOrders(?int $page = 1, ?Enum\GetOrdersFulfilmentMethod $fulfilmentMethod = null, ?Enum\GetOrdersStatus $status = null, ?int $changeIntervalMinute = null, ?string $latestChangeDate = null): array
+    public function getOrders(?int $page = 1, ?string $fulfilmentMethod = 'FBR', ?string $status = 'OPEN', ?int $changeIntervalMinute = null, ?string $latestChangeDate = null): array
     {
         $url = "retailer/orders";
         $options = [
             'query' => [
                 'page' => $page,
-                'fulfilment-method' => $fulfilmentMethod?->value,
-                'status' => $status?->value,
+                'fulfilment-method' => $fulfilmentMethod,
+                'status' => $status,
                 'change-interval-minute' => $changeIntervalMinute,
                 'latest-change-date' => $latestChangeDate,
             ],
@@ -806,7 +804,7 @@ class Client extends BaseClient
      */
     public function getOrder(string $orderId): ?Model\Order
     {
-        $url = "retailer/orders/{$orderId}";
+        $url = "retailer/orders/${orderId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -833,7 +831,6 @@ class Client extends BaseClient
         $url = "retailer/products/categories";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\ProductCategoriesResponse::class,
@@ -860,7 +857,6 @@ class Client extends BaseClient
             'body' => $productListRequest,
             'produces' => 'application/vnd.retailer.v10+json',
             'consumes' => 'application/json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\ProductListResponse::class,
@@ -872,8 +868,7 @@ class Client extends BaseClient
 
     /**
      * Gets the list of possible filters for products based on category or search term.
-     * @param Enum\GetProductListFiltersCountryCode|null $countryCode The country for which the filters will be
-     * retrieved.
+     * @param string|null $countryCode The country for which the filters will be retrieved.
      * @param string|null $searchTerm The search-term to get the associated categories and filters for.
      * @param string|null $categoryId The category to get the associated filters for.
      * @param string|null $AcceptLanguage The language in which the product list filters will be retrieved.
@@ -884,17 +879,16 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getProductListFilters(?Enum\GetProductListFiltersCountryCode $countryCode = null, ?string $searchTerm = null, ?string $categoryId = null, ?string $AcceptLanguage = null): ?Model\ProductListFiltersResponse
+    public function getProductListFilters(?string $countryCode = null, ?string $searchTerm = null, ?string $categoryId = null, ?string $AcceptLanguage = null): ?Model\ProductListFiltersResponse
     {
         $url = "retailer/products/list-filters";
         $options = [
             'query' => [
-                'country-code' => $countryCode?->value,
+                'country-code' => $countryCode,
                 'search-term' => $searchTerm,
                 'category-id' => $categoryId,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\ProductListFiltersResponse::class,
@@ -907,7 +901,7 @@ class Client extends BaseClient
     /**
      * Gets the list of asset available for the product by EAN.
      * @param string $ean The EAN number associated with this product.
-     * @param Enum\GetProductAssetsUsage|null $usage Type of the asset being used for.
+     * @param string|null $usage Type of the asset being used for.
      * @return Model\ProductAssets[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -915,12 +909,12 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getProductAssets(string $ean, ?Enum\GetProductAssetsUsage $usage = null): array
+    public function getProductAssets(string $ean, ?string $usage = null): array
     {
-        $url = "retailer/products/{$ean}/assets";
+        $url = "retailer/products/${ean}/assets";
         $options = [
             'query' => [
-                'usage' => $usage?->value,
+                'usage' => $usage,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -937,10 +931,10 @@ class Client extends BaseClient
      * Use this endpoint to get a list of offers available in the webshop. The list includes offers for all retailers.
      * @param string $ean The EAN number associated with this product.
      * @param int|null $page The requested page number with a page size of 50 items.
-     * @param Enum\GetCompetingOffersCountryCode|null $countryCode Countries in which this offer is currently on sale in
-     * the webshop, in ISO-3166-1 format.
+     * @param string|null $countryCode Countries in which this offer is currently on sale in the webshop, in ISO-3166-1
+     * format.
      * @param bool|null $bestOfferOnly Indicator to request the best offer within the country for the requested EAN.
-     * @param Enum\GetCompetingOffersCondition|null $condition The condition of the offered product.
+     * @param string|null $condition The condition of the offered product.
      * @return Model\Offer[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -948,15 +942,15 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getCompetingOffers(string $ean, ?int $page = 1, ?Enum\GetCompetingOffersCountryCode $countryCode = null, ?bool $bestOfferOnly = false, ?Enum\GetCompetingOffersCondition $condition = null): array
+    public function getCompetingOffers(string $ean, ?int $page = 1, ?string $countryCode = null, ?bool $bestOfferOnly = false, ?string $condition = null): array
     {
-        $url = "retailer/products/{$ean}/offers";
+        $url = "retailer/products/${ean}/offers";
         $options = [
             'query' => [
                 'page' => $page,
-                'country-code' => $countryCode?->value,
+                'country-code' => $countryCode,
                 'best-offer-only' => $bestOfferOnly,
-                'condition' => $condition?->value,
+                'condition' => $condition,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -972,7 +966,7 @@ class Client extends BaseClient
     /**
      * Gets the list of categories and the URL where the product is placed in the webshop.
      * @param string $ean The EAN number associated with this product.
-     * @param Enum\GetProductPlacementCountryCode|null $countryCode The country of the product placed on the webshop.
+     * @param string|null $countryCode The country of the product placed on the webshop.
      * @param string|null $AcceptLanguage The language in which the product categories and URL will be retrieved.
      * @return Model\ProductPlacementResponse|null
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
@@ -981,15 +975,14 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getProductPlacement(string $ean, ?Enum\GetProductPlacementCountryCode $countryCode = null, ?string $AcceptLanguage = null): ?Model\ProductPlacementResponse
+    public function getProductPlacement(string $ean, ?string $countryCode = null, ?string $AcceptLanguage = null): ?Model\ProductPlacementResponse
     {
-        $url = "retailer/products/{$ean}/placement";
+        $url = "retailer/products/${ean}/placement";
         $options = [
             'query' => [
-                'country-code' => $countryCode?->value,
+                'country-code' => $countryCode,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
-            'language' => $AcceptLanguage,
         ];
         $responseTypes = [
             '200' => Model\ProductPlacementResponse::class,
@@ -1011,7 +1004,7 @@ class Client extends BaseClient
      */
     public function getPriceStarBoundaries(string $ean): ?Model\PriceStarBoundaries
     {
-        $url = "retailer/products/{$ean}/price-star-boundaries";
+        $url = "retailer/products/${ean}/price-star-boundaries";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1035,7 +1028,7 @@ class Client extends BaseClient
      */
     public function getProductIds(string $ean): ?Model\ProductIdsResponse
     {
-        $url = "retailer/products/{$ean}/product-ids";
+        $url = "retailer/products/${ean}/product-ids";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1059,7 +1052,7 @@ class Client extends BaseClient
      */
     public function getProductRatings(string $ean): array
     {
-        $url = "retailer/products/{$ean}/ratings";
+        $url = "retailer/products/${ean}/ratings";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1074,7 +1067,7 @@ class Client extends BaseClient
 
     /**
      * Gets a paginated list of all promotions for a retailer.
-     * @param Enum\GetPromotionsPromotionType $promotionType The type(s) of promotion to be retrieved.
+     * @param string $promotionType The type(s) of promotion to be retrieved.
      * @param int|null $page The requested page number with a page size of 50 items.
      * @return Model\ReducedPromotion[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
@@ -1083,12 +1076,12 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getPromotions(Enum\GetPromotionsPromotionType $promotionType, ?int $page = 1): array
+    public function getPromotions(string $promotionType, ?int $page = 1): array
     {
         $url = "retailer/promotions";
         $options = [
             'query' => [
-                'promotion-type' => $promotionType->value,
+                'promotion-type' => $promotionType,
                 'page' => $page,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
@@ -1112,7 +1105,7 @@ class Client extends BaseClient
      */
     public function getPromotion(string $promotionId): ?Model\Promotion
     {
-        $url = "retailer/promotions/{$promotionId}";
+        $url = "retailer/promotions/${promotionId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1137,7 +1130,7 @@ class Client extends BaseClient
      */
     public function getProducts(string $promotionId, ?int $page = 1): array
     {
-        $url = "retailer/promotions/{$promotionId}/products";
+        $url = "retailer/promotions/${promotionId}/products";
         $options = [
             'query' => [
                 'page' => $page,
@@ -1296,7 +1289,7 @@ class Client extends BaseClient
      */
     public function getProductDestinations(string $productDestinationsId): array
     {
-        $url = "retailer/replenishments/product-destinations/{$productDestinationsId}";
+        $url = "retailer/replenishments/product-destinations/${productDestinationsId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1347,7 +1340,7 @@ class Client extends BaseClient
      */
     public function getReplenishment(string $replenishmentId): ?Model\ReplenishmentResponse
     {
-        $url = "retailer/replenishments/{$replenishmentId}";
+        $url = "retailer/replenishments/${replenishmentId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1372,7 +1365,7 @@ class Client extends BaseClient
      */
     public function putReplenishment(string $replenishmentId, Model\UpdateReplenishmentRequest $updateReplenishmentRequest): Model\ProcessStatus
     {
-        $url = "retailer/replenishments/{$replenishmentId}";
+        $url = "retailer/replenishments/${replenishmentId}";
         $options = [
             'body' => $updateReplenishmentRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -1388,7 +1381,7 @@ class Client extends BaseClient
     /**
      * Retrieve the load carrier labels.
      * @param string $replenishmentId The unique identifier of the replenishment.
-     * @param Enum\GetLoadCarrierLabelsLabelType|null $labelType The type of label which you want to print.
+     * @param string|null $labelType The type of label which you want to print.
      * @return string|null
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -1396,12 +1389,12 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getLoadCarrierLabels(string $replenishmentId, ?Enum\GetLoadCarrierLabelsLabelType $labelType = null): ?string
+    public function getLoadCarrierLabels(string $replenishmentId, ?string $labelType = null): ?string
     {
-        $url = "retailer/replenishments/{$replenishmentId}/load-carrier-labels";
+        $url = "retailer/replenishments/${replenishmentId}/load-carrier-labels";
         $options = [
             'query' => [
-                'label-type' => $labelType?->value,
+                'label-type' => $labelType,
             ],
             'produces' => 'application/vnd.retailer.v10+pdf',
         ];
@@ -1425,7 +1418,7 @@ class Client extends BaseClient
      */
     public function getPickList(string $replenishmentId): ?string
     {
-        $url = "retailer/replenishments/{$replenishmentId}/pick-list";
+        $url = "retailer/replenishments/${replenishmentId}/pick-list";
         $options = [
             'produces' => 'application/vnd.retailer.v10+pdf',
         ];
@@ -1449,7 +1442,7 @@ class Client extends BaseClient
      */
     public function getRetailerInformation(string $retailerId): ?Model\RetailerInformationResponse
     {
-        $url = "retailer/retailers/{$retailerId}";
+        $url = "retailer/retailers/${retailerId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1466,8 +1459,8 @@ class Client extends BaseClient
      * unhandled returns are sorted by date in ascending order.
      * @param int|null $page The page to get with a page size of 50.
      * @param bool|null $handled The status of the returns you wish to see, shows either handled or unhandled returns.
-     * @param Enum\GetReturnsFulfilmentMethod|null $fulfilmentMethod The fulfilment method. Fulfilled by the retailer
-     * (FBR) or fulfilled by bol.com (FBB).
+     * @param string|null $fulfilmentMethod The fulfilment method. Fulfilled by the retailer (FBR) or fulfilled by
+     * bol.com (FBB).
      * @return Model\ReducedReturn[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -1475,14 +1468,14 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getReturns(?int $page = 1, ?bool $handled = null, ?Enum\GetReturnsFulfilmentMethod $fulfilmentMethod = null): array
+    public function getReturns(?int $page = 1, ?bool $handled = null, ?string $fulfilmentMethod = null): array
     {
         $url = "retailer/returns";
         $options = [
             'query' => [
                 'page' => $page,
                 'handled' => $handled,
-                'fulfilment-method' => $fulfilmentMethod?->value,
+                'fulfilment-method' => $fulfilmentMethod,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1531,7 +1524,7 @@ class Client extends BaseClient
      */
     public function getReturn(string $returnId): ?Model\ReturnObject
     {
-        $url = "retailer/returns/{$returnId}";
+        $url = "retailer/returns/${returnId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1557,7 +1550,7 @@ class Client extends BaseClient
      */
     public function handleReturn(int $rmaId, Model\ReturnRequest $returnRequest): Model\ProcessStatus
     {
-        $url = "retailer/returns/{$rmaId}";
+        $url = "retailer/returns/${rmaId}";
         $options = [
             'body' => $returnRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -1574,8 +1567,8 @@ class Client extends BaseClient
      * A paginated list to retrieve all your shipments up to 3 months old. The shipments will be sorted by date in
      * descending order.
      * @param int|null $page The page to get with a page size of 50.
-     * @param Enum\GetShipmentsFulfilmentMethod|null $fulfilmentMethod The fulfilment method. Fulfilled by the retailer
-     * (FBR) or fulfilled by bol.com (FBB).
+     * @param string|null $fulfilmentMethod The fulfilment method. Fulfilled by the retailer (FBR) or fulfilled by
+     * bol.com (FBB).
      * @param string|null $orderId The id of the order. Only valid without fulfilment-method. The default
      * fulfilment-method is ignored.
      * @return Model\ReducedShipment[]
@@ -1585,13 +1578,13 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getShipments(?int $page = 1, ?Enum\GetShipmentsFulfilmentMethod $fulfilmentMethod = null, ?string $orderId = null): array
+    public function getShipments(?int $page = 1, ?string $fulfilmentMethod = null, ?string $orderId = null): array
     {
         $url = "retailer/shipments";
         $options = [
             'query' => [
                 'page' => $page,
-                'fulfilment-method' => $fulfilmentMethod?->value,
+                'fulfilment-method' => $fulfilmentMethod,
                 'order-id' => $orderId,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
@@ -1635,9 +1628,8 @@ class Client extends BaseClient
      * Gets a list of paginated invoice requests initiated by customers.
      * @param string|null $shipmentId The id of the shipment.
      * @param int|null $page The requested page number with a page size of 50 items.
-     * @param Enum\GetInvoiceRequestsState|null $state To filter on invoice request state. You can filter on all invoice
-     * requests regardless their statuses, open invoice requests requiring your action and invoice requests uploaded
-     * with possible errors.
+     * @param string|null $state To filter on invoice request state. You can filter on all invoice requests regardless
+     * their statuses, open invoice requests requiring your action and invoice requests uploaded with possible errors.
      * @return Model\InvoiceRequests[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
      * @throws Exception\ResponseException when an unexpected response was received.
@@ -1645,14 +1637,14 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getInvoiceRequests(?string $shipmentId = null, ?int $page = 1, ?Enum\GetInvoiceRequestsState $state = null): array
+    public function getInvoiceRequests(?string $shipmentId = null, ?int $page = 1, ?string $state = null): array
     {
         $url = "retailer/shipments/invoices/requests";
         $options = [
             'query' => [
                 'shipment-id' => $shipmentId,
                 'page' => $page,
-                'state' => $state?->value,
+                'state' => $state,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1678,7 +1670,7 @@ class Client extends BaseClient
      */
     public function uploadInvoice(string $shipmentId, string $invoice): ?Model\ProcessStatus
     {
-        $url = "retailer/shipments/invoices/{$shipmentId}";
+        $url = "retailer/shipments/invoices/${shipmentId}";
         $options = [
             'multipart' => [
                 [
@@ -1709,7 +1701,7 @@ class Client extends BaseClient
      */
     public function getShipment(string $shipmentId): ?Model\Shipment
     {
-        $url = "retailer/shipments/{$shipmentId}";
+        $url = "retailer/shipments/${shipmentId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1788,7 +1780,7 @@ class Client extends BaseClient
      */
     public function getShippingLabel(string $shippingLabelId): ?string
     {
-        $url = "retailer/shipping-labels/{$shippingLabelId}";
+        $url = "retailer/shipping-labels/${shippingLabelId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+pdf',
         ];
@@ -1885,7 +1877,7 @@ class Client extends BaseClient
      */
     public function postTestPushNotification(string $subscriptionId): Model\ProcessStatus
     {
-        $url = "retailer/subscriptions/test/{$subscriptionId}";
+        $url = "retailer/subscriptions/test/${subscriptionId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1910,7 +1902,7 @@ class Client extends BaseClient
      */
     public function getPushNotificationSubscription(string $subscriptionId): ?Model\SubscriptionResponse
     {
-        $url = "retailer/subscriptions/{$subscriptionId}";
+        $url = "retailer/subscriptions/${subscriptionId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1937,7 +1929,7 @@ class Client extends BaseClient
      */
     public function putPushNotificationSubscription(string $subscriptionId, Model\SubscriptionRequest $subscriptionRequest): Model\ProcessStatus
     {
-        $url = "retailer/subscriptions/{$subscriptionId}";
+        $url = "retailer/subscriptions/${subscriptionId}";
         $options = [
             'body' => $subscriptionRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -1963,7 +1955,7 @@ class Client extends BaseClient
      */
     public function deletePushNotificationSubscription(string $subscriptionId): Model\ProcessStatus
     {
-        $url = "retailer/subscriptions/{$subscriptionId}";
+        $url = "retailer/subscriptions/${subscriptionId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];
@@ -1988,7 +1980,7 @@ class Client extends BaseClient
      */
     public function addTransportInformationByTransportId(string $transportId, Model\ChangeTransportRequest $changeTransportRequest): Model\ProcessStatus
     {
-        $url = "retailer/transports/{$transportId}";
+        $url = "retailer/transports/${transportId}";
         $options = [
             'body' => $changeTransportRequest,
             'produces' => 'application/vnd.retailer.v10+json',
@@ -2009,8 +2001,7 @@ class Client extends BaseClient
      * these statuses.
      * @param string $entityId The entity id is not unique, so you will need to provide an event type. For example, an
      * entity id can be an order item id, transport id, return number, replenishment id, campaign id, and keyword id.
-     * @param Enum\GetProcessStatusEntityIdEventType $eventType The event type can only be used in combination with the
-     * entity id.
+     * @param string $eventType The event type can only be used in combination with the entity id.
      * @param int|null $page The requested page number with a page size of 50 items.
      * @return Model\ProcessStatus[]
      * @throws Exception\ConnectException when an error occurred in the HTTP connection.
@@ -2019,13 +2010,13 @@ class Client extends BaseClient
      * @throws Exception\RateLimitException when the throttling limit has been reached for the API user.
      * @throws Exception\Exception when something unexpected went wrong.
      */
-    public function getProcessStatusEntityId(string $entityId, Enum\GetProcessStatusEntityIdEventType $eventType, ?int $page = 1): array
+    public function getProcessStatusEntityId(string $entityId, string $eventType, ?int $page = 1): array
     {
         $url = "shared/process-status";
         $options = [
             'query' => [
                 'entity-id' => $entityId,
-                'event-type' => $eventType->value,
+                'event-type' => $eventType,
                 'page' => $page,
             ],
             'produces' => 'application/vnd.retailer.v10+json',
@@ -2084,7 +2075,7 @@ class Client extends BaseClient
      */
     public function getProcessStatus(string $processStatusId): ?Model\ProcessStatus
     {
-        $url = "shared/process-status/{$processStatusId}";
+        $url = "shared/process-status/${processStatusId}";
         $options = [
             'produces' => 'application/vnd.retailer.v10+json',
         ];

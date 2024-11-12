@@ -54,7 +54,7 @@ abstract class AbstractModel
                 } elseif ($definition['model']) {
                     $this->$field = $definition['model']::constructFromArray($data[$field]);
                 } elseif ($definition['enum']) {
-                    $this->$field = $definition['enum']::from($data[$field]);
+//                    $this->$field = $definition['enum']::from($data[$field]);
                 }
             }
         }
