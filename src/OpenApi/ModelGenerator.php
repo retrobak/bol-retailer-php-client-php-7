@@ -34,7 +34,7 @@ class ModelGenerator
     {
         $generator = new static;
         $generator->generateModels();
-        $generator->generateEnums();
+//        $generator->generateEnums();
     }
 
     public function generateModels(): void
@@ -108,6 +108,8 @@ class ModelGenerator
 
     public function generateEnum($name, $type, $values): void
     {
+        return; // Not PHP 7.x compatible
+
         echo $name . "...";
 
         $code = [];

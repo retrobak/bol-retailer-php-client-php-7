@@ -625,10 +625,10 @@ class BaseClient
     {
         return function (
             $retries,
-            ?ResponseInterface $response = null,
-            ?RequestInterface $request = null,
+            ResponseInterface $response = null,
+            RequestInterface $request = null
         ) {
-            return (int)$response?->getHeaderLine('Retry-After') * 1000;
+            return (int)(isset($response) ? $response->getHeaderLine('Retry-After') : 0) * 1000;
         };
     }
 }

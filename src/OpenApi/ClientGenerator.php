@@ -1,8 +1,7 @@
 <?php
 
-namespace Picqer\BolRetailerV10\OpenApi;
 
-use Exception;
+namespace Picqer\BolRetailerV10\OpenApi;
 
 class ClientGenerator
 {
@@ -11,13 +10,6 @@ class ClientGenerator
     protected static $overrideMethodNames = [
         'postShippingLabel' => 'createShippingLabel',
         'postInbound' => 'createInbound'
-    ];
-
-    protected static $overrideEnumNames = [
-        '>=' => 'GTE',
-        '<=' => 'LTE',
-        '>' => 'GT',
-        '<' => 'LT',
     ];
 
     protected static $paramTypeMapping = [
@@ -70,7 +62,7 @@ class ClientGenerator
      * @param string $parameterName;
      * @return array|null
      */
-    public function findMethodDefinitionParameter(array $methodDefinition, string $parameterName): array|null
+    public function findMethodDefinitionParameter(array $methodDefinition, string $parameterName)
     {
         if (empty($methodDefinition['parameters'])) {
             return null;
@@ -133,17 +125,11 @@ class ClientGenerator
         $this->addBodyParam($arguments, $code);
         $this->addFormData($arguments, $code);
 
-        $responseContent = $methodDefinition['responses']['200']['content'] ?? $methodDefinition['responses']['202']['content'] ?? $methodDefinition['responses']['207']['content'] ?? $methodDefinition['responses']['400']['content'] ?? null;
+        $responseContent = $methodDefinition['responses']['200']['content'] ?? $methodDefinition['responses']['202']['content'] ?? $methodDefinition['responses']['400']['content'] ?? null;
         $code[] = sprintf('            \'produces\' => \'%s\',', array_key_first($responseContent));
 
         if ($methodDefinition['requestBody']['content'] ?? false) {
             $code[] = sprintf('            \'consumes\' => \'%s\',', array_key_first($methodDefinition['requestBody']['content']));
-        }
-
-        $acceptLanguage = $this->findMethodDefinitionParameter($methodDefinition, 'Accept-Language');
-
-        if ($acceptLanguage !== null) {
-            $code[] = sprintf('            \'language\' => %s,', '$AcceptLanguage');
         }
 
         $code[] = '        ];';
@@ -261,7 +247,7 @@ class ClientGenerator
 
             $url = str_replace(
                 '{' . $argument['paramName'] . '}',
-                '{$' . $argument['name'] . '}',
+                '${' . $argument['name'] . '}',
                 $url
             );
         }
@@ -285,12 +271,6 @@ class ClientGenerator
 
             if ($parameter['in'] == 'query' && isset($parameter['schema']['$ref'])) {
                 continue;
-            } elseif ($parameter['in'] == 'query' && isset($parameter['schema']['enum'])) {
-                $wrappingType = ucfirst($this->kebabCaseToCamelCase($methodDefinition['operationId'] . '-' . $parameter['name']));
-                $argument['php'] = 'Enum\\' . $wrappingType;
-                $argument['doc'] = $argument['php'];
-                $argument['name'] = $this->kebabCaseToCamelCase($parameter['name']);
-                $argument['paramName'] = $parameter['name'];
             } else {
                 $argument['php'] = static::$paramTypeMapping[$parameter['schema']['type']];
                 $argument['doc'] = $argument['php'];
@@ -438,7 +418,7 @@ class ClientGenerator
             if ($argument['in'] != 'query') {
                 continue;
             }
-            $code[] = sprintf('                \'%s\' => $%s%s,', $argument['paramName'], $argument['name'], str_starts_with($argument['php'], 'Enum') ? '->value' : (str_starts_with($argument['php'], '?Enum') ? '?->value' : ''));
+            $code[] = sprintf('                \'%s\' => $%s,', $argument['paramName'], $argument['name']);
         }
         $code[] = '            ],';
     }
@@ -468,10 +448,10 @@ class ClientGenerator
 
     protected function addFormData(array $arguments, array &$code): void
     {
-        $containsFileArgument = in_array(true, array_map(
-            static fn(array $argument): bool => $argument['is_file'] ?? false,
-            $arguments,
-        ));
+        $containsFileArgument = in_array(true, array_map(function ($argument) {
+            return isset($argument['is_file']) ? $argument['is_file'] : false;
+        }, $arguments));
+
         $formData = [];
 
         foreach ($arguments as $argument) {
@@ -552,8 +532,8 @@ class ClientGenerator
                 if (isset($refSchema['properties'][$property]['type'], $refSchema['properties'][$property]['items']['$ref']) && $refSchema['properties'][$property]['type'] == 'array') {
                     return [
                         'doc' => 'Model\\' . $this->getType(
-                                $refSchema['properties'][$property]['items']['$ref']
-                            ) . '[]',
+                            $refSchema['properties'][$property]['items']['$ref']
+                        ) . '[]',
                         'php' => 'array',
                         'property' => $property
                     ];
@@ -566,7 +546,7 @@ class ClientGenerator
             // currently only array is support
 
             if ($response['schema']['type'] != 'string' || $response['schema']['format'] != 'byte') {
-                throw new Exception("Only Models and raw bytes are supported as response type");
+                throw new \Exception("Only Models and raw bytes are supported as response type");
             }
             return ['doc' => 'string', 'php' => 'string', ''];
         }
