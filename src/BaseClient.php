@@ -6,6 +6,7 @@ use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Picqer\BolRetailerV10\Exception\RateLimitException;
@@ -17,7 +18,6 @@ use Picqer\BolRetailerV10\Exception\ResponseException;
 use Picqer\BolRetailerV10\Exception\UnauthorizedException;
 use Picqer\BolRetailerV10\Model\Authentication\TokenResponse;
 use Picqer\BolRetailerV10\Model\Authentication\TokenRequest;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -612,7 +612,7 @@ class BaseClient
             $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
-            ?ClientExceptionInterface $exception = null
+            ?RequestException $exception = null
         ) {
             return $this->respectRateLimits
                 && $response
