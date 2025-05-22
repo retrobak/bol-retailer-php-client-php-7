@@ -47,6 +47,8 @@ class BaseClient
     /** @var ?callable */
     private $accessTokenExpiredCallback = null;
 
+    private $lastResponseHeaders = null;
+
     /**
      * BaseClient constructor.
      */
@@ -272,9 +274,10 @@ class BaseClient
         $response = $this->rawRequest('POST', static::API_TOKEN_URI, [
             'headers' => [
                 'Accept' => 'application/json',
-                'Authorization' => sprintf('Basic %s', $credentials)
+                'Authorization' => sprintf('Basic %s', $credentials),
+                'Content-Type' => 'application/x-www-form-urlencoded',
             ],
-            'query' => $token->toArray()
+            'body' => http_build_query($token->toArray())
         ]);
 
         $responseTypes = [
@@ -374,7 +377,17 @@ class BaseClient
             }
         }
 
+        $this->lastResponseHeaders = $response->getHeaders();
+
         return $this->decodeResponse($response, $responseTypes, $url);
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getLastResponseHeaders(): ?array
+    {
+        return $this->lastResponseHeaders;
     }
 
     /**
